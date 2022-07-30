@@ -43,6 +43,36 @@ void inspectChunks(Uint8List bytes) {
   print(chunks);
 }
 
+dynamic bytesToChunkMap(Uint8List bytes) {
+  Map<String, Map<String, String>> chunks = {};
+  int offset = 0;
+  while (offset < bytes.length) {
+    String chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
+    offset += VALUE_SIZE;
+    switch (chunkId) {
+      case 'VOX ':
+        int value = getInt(bytes, offset);
+        offset += VALUE_SIZE;
+        chunks[chunkId] = {
+          'version': value.toString(),
+        };
+        break;
+
+      default:
+        int chunkSize = getInt(bytes, offset);
+        offset += VALUE_SIZE;
+        int childSize = getInt(bytes, offset);
+        offset += VALUE_SIZE;
+        offset += chunkSize;
+        chunks[chunkId] = {
+          'chunkSize': chunkSize.toString(),
+          'childSize': childSize.toString(),
+        };
+    }
+  }
+  return chunks;
+}
+
 void toFile(List list) {
   String contents = '';
   for (int i = 0; i < list.length; i++) {
