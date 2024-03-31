@@ -44,3 +44,8 @@ void serializeModel(String fileName, Model model) {
   File file = File('$fileName.vox');
   file.writeAsBytesSync(model.toBytes());
 }
+
+void exportObj(String fileName, Model model) {
+  File file = File('$fileName.obj');
+  file.writeAsStringSync(model.toObj());
+}

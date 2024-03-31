@@ -1,5 +1,3 @@
-import 'package:vector_math/vector_math.dart';
-
 class Voxel {
   final int x;
   final int y;
