@@ -60,6 +60,10 @@ Model parseBytes(Uint8List bytes) {
           colors.add(VoxColor(r, g, b, a));
         }
         break;
+
+      default:
+        offset += META_SIZE;
+        break;
     }
   }
   return Model(voxels, sizeX, sizeY, sizeZ, colors);
