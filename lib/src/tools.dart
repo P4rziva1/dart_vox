@@ -141,24 +141,21 @@ String getString(Uint8List bytes) {
   return String.fromCharCodes(bytes.sublist(offset, offset + length));
 }
 
-List<Map<String, String>> getDict(Uint8List bytes) {
+(Map<String, String>, int) getDict(Uint8List bytes) {
   int offset = 0;
   int pairs = getInt(bytes, 0);
-  List<Map<String, String>> dict = [];
+  Map<String, String> dict = {};
   offset += VALUE_SIZE;
-  // for (int i = 0; i < pairs; i++) {
-  //   int length = getInt(bytes, offset);
-  //   offset += VALUE_SIZE;
-  //   String key = String.fromCharCodes(bytes.sublist(offset, offset + length));
-  //   offset += length;
-  //   length = getInt(bytes, offset);
-  //   offset += VALUE_SIZE;
-  //   String value = String.fromCharCodes(bytes.sublist(offset, offset + length));
-  //   Map
-  //   offset += length;
-  //   dict[key] = value;
-  //   return '';
-  // }
-  print(dict);
-  return dict;
+  for (int i = 0; i < pairs; i++) {
+    int length = getInt(bytes, offset);
+    offset += VALUE_SIZE;
+    String key = String.fromCharCodes(bytes.sublist(offset, offset + length));
+    offset += length;
+    length = getInt(bytes, offset);
+    offset += VALUE_SIZE;
+    String value = String.fromCharCodes(bytes.sublist(offset, offset + length));
+    offset += length;
+    dict[key] = value;
+  }
+  return (dict, offset);
 }
