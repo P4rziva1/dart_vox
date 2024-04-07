@@ -149,13 +149,15 @@ Model parseBytes(Uint8List bytes) {
         break;
     }
   }
-  return Model(voxels, sizeX, sizeY, sizeZ, colors);
+  return Model(shapes: [
+    Shape(
+      size: Size(sizeX, sizeY, sizeZ),
+      voxels: voxels,
+    ),
+  ], colorPalette: colors);
 }
 
 int getInt(Uint8List bytes, offset) {
   ByteData data = bytes.sublist(offset, offset + 4).buffer.asByteData();
   return data.getUint32(0, Endian.little);
 }
-// int readInt(Iterable<int> bytes) {
-//   ByteData
-// }

@@ -13,7 +13,7 @@ void main() {
       File file = File('./test/data/3x3x3.vox');
       Uint8List bytes = file.readAsBytesSync();
       Model model = Model.fromBytes(bytes);
-      expect(model.voxels.length, 20);
+      expect(model.shapes.first.voxels.length, 20);
       expect(model.toBytes(), bytes);
     });
   });

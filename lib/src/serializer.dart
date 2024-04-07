@@ -6,74 +6,19 @@ import 'package:dart_vox/src/models/voxel.dart';
 
 import 'models/color.dart';
 
-Uint8List createBytes(Model model) {
-  BytesBuilder builder = BytesBuilder();
-  //VOX;
-  builder.add(createVoxChunk());
-  //SIZE
-  Uint8List size = createSizeChunk(model.sizeX, model.sizeY, model.sizeZ);
-
-  //PACK
-  Uint8List pack = createPackChunk(1);
-
-  //XYZI
-  Uint8List vox = createXYZIChunk(model.voxels);
-
-  int mainSize = vox.length + size.length + pack.length;
-
-  //RGBA
-  Uint8List rgba = Uint8List(255 * VALUE_SIZE);
-  if (model.colorPalette.isNotEmpty) {
-    rgba = createRGBAChunk(model.colorPalette);
-    mainSize += rgba.length;
-  }
-
-  //MAIN
-  builder.add(createMainChunk(mainSize));
-
-  builder.add(pack);
-  builder.add(size);
-  builder.add(vox);
-  if (model.colorPalette.isNotEmpty) {
-    builder.add(rgba);
-  }
-  return builder.toBytes();
-}
-
 //Create the bytes from bottom up so we know the size of the remaining ones when we need them
 Uint8List smartSerialize(Model model) {
   List<int> bytes = [];
   if (model.colorPalette.isNotEmpty) {
     bytes.insertAll(0, createRGBAChunk(model.colorPalette));
   }
-  if (model.voxels.isNotEmpty) {
-    bytes.insertAll(0, createXYZIChunk(model.voxels));
+  for (Shape shape in model.shapes) {
+    if (shape.voxels.isNotEmpty) {
+      bytes.insertAll(0, createXYZIChunk(shape.voxels));
+      bytes.insertAll(0, createSizeChunk(shape.size));
+    }
   }
 
-  if (model.sizeX == 0 || model.sizeY == 0 || model.sizeZ == 0) {
-    int maxX = 0;
-    int maxY = 0;
-    int maxZ = 0;
-    for (Voxel vox in model.voxels) {
-      if (vox.x > maxX) {
-        maxX = vox.x;
-      }
-      if (vox.y > maxY) {
-        maxY = vox.y;
-      }
-      if (vox.z > maxZ) {
-        maxZ = vox.z;
-      }
-    }
-    maxX++;
-    maxY++;
-    maxZ++;
-    model.sizeX = maxX;
-    model.sizeY = maxY;
-    model.sizeZ = maxZ;
-    print('${model.sizeX} ${model.sizeY} ${model.sizeZ}');
-  }
-  bytes.insertAll(0, createSizeChunk(model.sizeX, model.sizeY, model.sizeZ));
   bytes.insertAll(0, createPackChunk(1));
   print(bytes.length);
   bytes.insertAll(0, createMainChunk(bytes.length));
@@ -96,13 +41,13 @@ Uint8List createPackChunk(int numModels) {
   return builder.toBytes();
 }
 
-Uint8List createSizeChunk(int x, int y, int z) {
+Uint8List createSizeChunk(Size size) {
   BytesBuilder builder = BytesBuilder();
   builder.add(createChunkId('SIZE'));
   builder.add(createChunkMetadata(3 * 4, 0));
-  builder.add(serializeValue(x));
-  builder.add(serializeValue(y));
-  builder.add(serializeValue(z));
+  builder.add(serializeValue(size.x));
+  builder.add(serializeValue(size.y));
+  builder.add(serializeValue(size.z));
   return builder.toBytes();
 }
 
@@ -166,3 +111,30 @@ Uint8List serializeValue(int value) {
   bytes.buffer.asByteData().setUint32(0, value, Endian.little);
   return bytes;
 }
+
+Size getShapeSize(List<Voxel> voxels) {
+  int maxX = 0;
+  int maxY = 0;
+  int maxZ = 0;
+  for (Voxel vox in voxels) {
+    if (vox.x > maxX) {
+      maxX = vox.x;
+    }
+    if (vox.y > maxY) {
+      maxY = vox.y;
+    }
+    if (vox.z > maxZ) {
+      maxZ = vox.z;
+    }
+  }
+  maxX++;
+  maxY++;
+  maxZ++;
+  return Size(
+    maxX,
+    maxY,
+    maxZ,
+  );
+}
+
+Uint8List createShape(List<Voxel> voxel) {}

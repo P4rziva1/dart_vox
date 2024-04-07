@@ -17,17 +17,16 @@ void parse(String name) {
 
 void serialize() {
   Model model = Model(
-    [
-      Voxel(0, 0, 0, 1),
-      Voxel(0, 0, 1, 2),
-      Voxel(0, 0, 2, 3),
-      Voxel(0, 0, 3, 4),
-      Voxel(0, 0, 4, 5),
+    shapes: [
+      Shape(size: Size(5, 5, 5), voxels: [
+        Voxel(0, 0, 0, 1),
+        Voxel(0, 0, 1, 2),
+        Voxel(0, 0, 2, 3),
+        Voxel(0, 0, 3, 4),
+        Voxel(0, 0, 4, 5),
+      ])
     ],
-    5,
-    5,
-    5,
-    ColorPalette.fromColors(
+    colorPalette: ColorPalette.fromColors(
       [
         VoxColor(255, 0, 0, 255),
         VoxColor(0, 255, 0, 255),

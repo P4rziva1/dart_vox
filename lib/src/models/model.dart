@@ -7,14 +7,28 @@ import 'package:dart_vox/src/serializer.dart';
 
 enum UpAxis { Y_UP, Z_UP }
 
-class Model {
-  int sizeX;
-  int sizeY;
-  int sizeZ;
+class Size {
+  int x;
+  int y;
+  int z;
+  Size(this.x, this.y, this.z);
+}
+
+class Shape {
+  final Size size;
   final List<Voxel> voxels;
+
+  Shape({
+    required this.size,
+    required this.voxels,
+  });
+}
+
+class Model {
+  final List<Shape> shapes;
   final List<VoxColor> colorPalette;
 
-  Model(this.voxels, this.sizeX, this.sizeY, this.sizeZ, this.colorPalette);
+  Model({required this.shapes, required this.colorPalette});
 
   factory Model.fromBytes(Uint8List bytes) {
     return parseBytes(bytes);
@@ -25,18 +39,30 @@ class Model {
   }
 
   String toObj() {
-    return convertVoxelsToObj(convertModelTo3DList(this));
+    return convertVoxelsToObj(convertModelTo3DList());
   }
 
-  List<List<List<bool>>> convertModelTo3DList(Model model) {
+  //Limited to one shape
+  List<List<List<bool>>> convertModelTo3DList() {
     // Initialize a 3D list with all values set to false
-    var voxels3D = List.generate(
-        model.sizeX,
-        (x) => List.generate(
-            model.sizeY, (y) => List.generate(model.sizeZ, (z) => false)));
+    if (shapes.isEmpty) {
+      throw 'shapes must not be empty';
+    }
+    final Shape shape = this.shapes.first;
+
+    final List<List<List<bool>>> voxels3D = List.generate(
+      shape.size.x,
+      (x) => List.generate(
+        shape.size.y,
+        (y) => List.generate(
+          shape.size.z,
+          (z) => false,
+        ),
+      ),
+    );
 
     // Iterate through the voxels in the model and set the corresponding positions in the 3D list to true
-    for (var voxel in model.voxels) {
+    for (Voxel voxel in shape.voxels) {
       voxels3D[voxel.x][voxel.y][voxel.z] = true;
     }
 
