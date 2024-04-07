@@ -4,15 +4,15 @@ import 'package:dart_vox/src/models/color.dart';
 import 'package:dart_vox/src/models/color_palette.dart';
 import 'package:dart_vox/src/models/model.dart';
 import 'package:dart_vox/src/models/voxel.dart';
-import 'package:dart_vox/src/tools.dart';
 
 void main(List<String> args) {
-  serialize();
+  // serialize();
+  parse('multi.vox');
 }
 
 void parse(String name) {
   File file = File(name);
-  inspectChunks(file.readAsBytesSync());
+  Model.fromBytes(file.readAsBytesSync());
 }
 
 void serialize() {
