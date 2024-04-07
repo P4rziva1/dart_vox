@@ -4,7 +4,6 @@ import 'package:dart_vox/src/models/color.dart';
 import 'package:dart_vox/src/models/voxel.dart';
 import 'package:dart_vox/src/parser.dart';
 import 'package:dart_vox/src/serializer.dart';
-import 'package:vector_math/vector_math.dart';
 
 enum UpAxis { Y_UP, Z_UP }
 
