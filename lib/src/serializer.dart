@@ -21,7 +21,9 @@ Uint8List smartSerialize(Model model) {
   int nextNodeId = 2;
   int nextModelId = 0;
   for (Shape shape in model.shapes) {
-    if (shape.voxels.isNotEmpty) {
+    if (shape.voxels.isEmpty) {
+      throw 'voxels can not be empty';
+    }
       bytes.insertAll(0, createXYZIChunk(shape.voxels));
       bytes.insertAll(0, createSizeChunk(shape.size));
       // Create a TransformNode for each model with an example translation
@@ -36,26 +38,18 @@ Uint8List smartSerialize(Model model) {
       //FIXME: What is the modelId?
       ShapeNode shapeNode = ShapeNode(id: nextNodeId++, modelId: nextModelId++);
       shapeNodes.add(shapeNode);
-    }
 
-    // // Create a single GroupNode that groups all shapes
-    // GroupNode groupNode = GroupNode(
-    //     id: 1, childrenIds: transformNodes.map((node) => node.id).toList());
-
-    // Serialize TransformNodes, GroupNode, and ShapeNodes
-    // sceneGraphChunks.add(serializeGroupNode(groupNode));
-
-    transformNodes.forEach((node) {
-      sceneGraphChunks.add(serializeTransformNode(node));
-    });
-    shapeNodes.forEach((node) {
-      sceneGraphChunks.add(serializeShapeNode(node));
-    });
+      sceneGraphChunks.add(serializeTransformNode(transformNode));
+    // transformNodes.forEach((node) {
+    // });
+      sceneGraphChunks.add(serializeShapeNode(shapeNode));
+    // shapeNodes.forEach((node) {
+    // });
   }
   // Create a single GroupNode that groups all shapes
   GroupNode groupNode = GroupNode(
       id: 1, childrenIds: transformNodes.map((node) => node.id).toList());
-    sceneGraphChunks.insert(0, serializeGroupNode(groupNode));
+  sceneGraphChunks.insert(0, serializeGroupNode(groupNode));
   bytes.addAll(baseTransformNode());
   sceneGraphChunks.forEach((element) {
     bytes.addAll(element.toList());
