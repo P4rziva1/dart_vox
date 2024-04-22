@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dart_vox/src/models/color.dart';
+import 'package:dart_vox/src/models/nodes.dart';
 import 'package:dart_vox/src/models/voxel.dart';
 import 'package:dart_vox/src/parser.dart';
 import 'package:dart_vox/src/serializer.dart';
@@ -17,10 +18,12 @@ class Size {
 class Shape {
   final Size size;
   final List<Voxel> voxels;
+  final Translation translation;
 
   Shape({
     required this.size,
     required this.voxels,
+    this.translation = const Translation(0, 0, 0),
   });
 }
 

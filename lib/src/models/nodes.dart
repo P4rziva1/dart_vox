@@ -26,5 +26,5 @@ class Translation {
   final int y;
   final int z;
 
-  Translation(this.x, this.y, this.z);
+  const Translation(this.x, this.y, this.z);
 }
