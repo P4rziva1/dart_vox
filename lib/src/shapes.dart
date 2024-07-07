@@ -130,18 +130,13 @@ List<Voxel> createWall({
             : (yDistance == 0 ? 0 : (i * yDirection * yDistance) ~/ length));
 
     for (int z = 0; z < height; z++) {
-      for (int tx = 0; tx < thickness; tx++) {
-        for (int ty = 0; ty < thickness; ty++) {
-          // Adjust offsets based on wall orientation
-          int offsetX = xDistance > yDistance ? tx : ty;
-          int offsetY = yDistance > xDistance ? ty : tx;
-
-          wall.add(Voxel(
-            currentX + offsetX * yDirection,
-            currentY - offsetY * xDirection,
-            z,
-            color,
-          ));
+      for (int t = 0; t < thickness; t++) {
+        if (xDistance >= yDistance) {
+          // Wall thickness along the y-axis
+          wall.add(Voxel(currentX, currentY + t * yDirection, z, color));
+        } else {
+          // Wall thickness along the x-axis
+          wall.add(Voxel(currentX + t * xDirection, currentY, z, color));
         }
       }
     }
