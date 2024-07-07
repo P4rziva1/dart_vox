@@ -6,7 +6,8 @@ class VoxColor {
 
   VoxColor(this.r, this.g, this.b, this.a);
 
-  void printRGB() {
-    print('$r $g $b $a');
+  @override
+  String toString() {
+    return '$r $g $b $a';
   }
 }

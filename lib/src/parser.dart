@@ -19,37 +19,37 @@ Model parseBytes(Uint8List bytes) {
   //TODO: Get content size then pass sublist to dedocated function
   while (offset < bytes.length) {
     String chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
-    offset += VALUE_SIZE;
+    offset += valueSize;
     print(chunkId);
     switch (chunkId) {
       case 'VOX ':
-        offset += VALUE_SIZE;
+        offset += valueSize;
         break;
       case 'MAIN':
-        offset += META_SIZE;
+        offset += metaSize;
         break;
       case 'PACK':
-        offset += META_SIZE + VALUE_SIZE;
+        offset += metaSize + valueSize;
         break;
       case 'SIZE':
-        offset += META_SIZE;
+        offset += metaSize;
         sizeX = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         sizeY = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         sizeZ = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         break;
       case 'XYZI':
-        offset += META_SIZE;
+        offset += metaSize;
         int numVoxels = getInt(bytes, offset);
-        offset += VALUE_SIZE;
-        offset += VALUE_SIZE * numVoxels;
+        offset += valueSize;
+        offset += valueSize * numVoxels;
         voxels =
-            parseXYZI(bytes.sublist(offset, offset + numVoxels * VALUE_SIZE));
+            parseXYZI(bytes.sublist(offset, offset + numVoxels * valueSize));
         break;
       case 'RGBA':
-        offset += META_SIZE;
+        offset += metaSize;
         for (int i = 0; i <= 255; i++) {
           int r = bytes[offset];
           offset++;
@@ -63,11 +63,11 @@ Model parseBytes(Uint8List bytes) {
         }
         break;
       case 'nTRN':
-        offset += META_SIZE;
+        offset += metaSize;
         //INT32 node id
         int nodeId = getInt(bytes, offset);
         print('nodeId $nodeId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //DICT Attribute
         (Map, int) dict = getDict(bytes.sublist(offset));
         print('dict ${dict.$1}');
@@ -76,19 +76,19 @@ Model parseBytes(Uint8List bytes) {
         //INT32 child node id
         int childNodeId = getInt(bytes, offset);
         print('childNodeId $childNodeId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //INT32 reserved id
         int reservedId = getInt(bytes, offset);
         print('reservedId $reservedId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //INT32 layer id
         int layerId = getInt(bytes, offset);
         print('layerId $layerId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //INT32 num of frames
         int frames = getInt(bytes, offset);
         print('frames $frames');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //DICT frame stuff
         (Map, int) frameStuff = getDict(bytes.sublist(offset));
         print('frameStuff ${frameStuff.$1}');
@@ -97,11 +97,11 @@ Model parseBytes(Uint8List bytes) {
         break;
 
       case 'nGRP':
-        offset += META_SIZE;
+        offset += metaSize;
         //INT32 node id
         int nodeId = getInt(bytes, offset);
         print('nodeId $nodeId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //DICT Attribute
         (Map, int) dict = getDict(bytes.sublist(offset));
         print('dict ${dict.$1}');
@@ -110,20 +110,20 @@ Model parseBytes(Uint8List bytes) {
         //INT32 child node id
         int numChildrenNodes = getInt(bytes, offset);
         print('numChildren $numChildrenNodes');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         for (int i = 0; i < numChildrenNodes; i++) {
           int childId = getInt(bytes, offset);
           print('$i childId $childId');
-          offset += VALUE_SIZE;
+          offset += valueSize;
         }
         break;
 
       case 'nSHP':
-        offset += META_SIZE;
+        offset += metaSize;
         //INT32 node id
         int nodeId = getInt(bytes, offset);
         print('nodeId $nodeId');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         //DICT Attribute
         (Map, int) dict = getDict(bytes.sublist(offset));
         print('dict ${dict.$1}');
@@ -132,11 +132,11 @@ Model parseBytes(Uint8List bytes) {
         //INT32 child node id
         int numOfModels = getInt(bytes, offset);
         print('numOfModels $numOfModels');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         for (int i = 0; i < numOfModels; i++) {
           int modelId = getInt(bytes, offset);
           print('$i modelId $modelId');
-          offset += VALUE_SIZE;
+          offset += valueSize;
         }
         break;
 
@@ -144,7 +144,7 @@ Model parseBytes(Uint8List bytes) {
         print(chunkId);
         int chunkLength = getInt(bytes, offset);
         print('len $chunkLength');
-        offset += META_SIZE;
+        offset += metaSize;
         offset += chunkLength;
         break;
     }

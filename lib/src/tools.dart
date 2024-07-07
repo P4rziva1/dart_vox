@@ -12,20 +12,20 @@ void inspectChunks(Uint8List bytes) {
   while (offset < bytes.length) {
     String chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
     chunks.add(chunkId);
-    offset += VALUE_SIZE;
+    offset += valueSize;
     switch (chunkId) {
       case 'VOX ':
-        offset += VALUE_SIZE;
+        offset += valueSize;
         break;
 
       default:
         print(chunkId);
         int chunkSize = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         print('chunk: $chunkSize');
         int childSize = getInt(bytes, offset);
         print('child: $childSize');
-        offset += VALUE_SIZE;
+        offset += valueSize;
         offset += chunkSize;
     }
   }
@@ -48,11 +48,11 @@ dynamic bytesToChunkMap(Uint8List bytes) {
   int offset = 0;
   while (offset < bytes.length) {
     String chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
-    offset += VALUE_SIZE;
+    offset += valueSize;
     switch (chunkId) {
       case 'VOX ':
         int value = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         chunks[chunkId] = {
           'version': value.toString(),
         };
@@ -60,9 +60,9 @@ dynamic bytesToChunkMap(Uint8List bytes) {
 
       default:
         int chunkSize = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         int childSize = getInt(bytes, offset);
-        offset += VALUE_SIZE;
+        offset += valueSize;
         offset += chunkSize;
         chunks[chunkId] = {
           'chunkSize': chunkSize.toString(),
@@ -84,8 +84,10 @@ void toFile(List list) {
 
 List<Material> parseMATL(Uint8List bytes) {
   int offset = 0;
+  // ignore: unused_local_variable
   int materialId = getInt(bytes, 0);
-  offset += VALUE_SIZE;
+  offset += valueSize;
+  // ignore: unused_local_variable
   final materialDict = getDict(bytes.sublist(offset));
   return [];
 }
@@ -94,11 +96,11 @@ List<String> parseNOTE(Uint8List bytes) {
   int offset = 0;
   int numColors = getInt(bytes, 0);
   print(numColors);
-  offset += VALUE_SIZE;
+  offset += valueSize;
   List<String> notes = [];
   for (int i = 0; i < numColors; i++) {
     int length = getInt(bytes, offset);
-    offset += VALUE_SIZE;
+    offset += valueSize;
     String note = String.fromCharCodes(bytes.sublist(offset, offset + length));
     offset += length;
     notes.add(note);
@@ -109,7 +111,7 @@ List<String> parseNOTE(Uint8List bytes) {
 List<Voxel> parseXYZI(Uint8List bytes) {
   List<Voxel> voxels = [];
   int offset = 0;
-  for (int i = 0; i < bytes.length / VALUE_SIZE; i++) {
+  for (int i = 0; i < bytes.length / valueSize; i++) {
     int x = bytes[offset];
     offset++;
     int y = bytes[offset];
@@ -126,18 +128,18 @@ List<Voxel> parseXYZI(Uint8List bytes) {
 void parseSIZE(Uint8List bytes) {
   int offset = 0;
   int sizeX = getInt(bytes, offset);
-  offset += VALUE_SIZE;
+  offset += valueSize;
   int sizeY = getInt(bytes, offset);
-  offset += VALUE_SIZE;
+  offset += valueSize;
   int sizeZ = getInt(bytes, offset);
-  offset += VALUE_SIZE;
+  offset += valueSize;
   print('{x: $sizeX, y: $sizeY, z: $sizeZ}');
 }
 
 String getString(Uint8List bytes) {
   int offset = 0;
   int length = getInt(bytes, 0);
-  offset += VALUE_SIZE;
+  offset += valueSize;
   return String.fromCharCodes(bytes.sublist(offset, offset + length));
 }
 
@@ -145,14 +147,14 @@ String getString(Uint8List bytes) {
   int offset = 0;
   int pairs = getInt(bytes, 0);
   Map<String, String> dict = {};
-  offset += VALUE_SIZE;
+  offset += valueSize;
   for (int i = 0; i < pairs; i++) {
     int length = getInt(bytes, offset);
-    offset += VALUE_SIZE;
+    offset += valueSize;
     String key = String.fromCharCodes(bytes.sublist(offset, offset + length));
     offset += length;
     length = getInt(bytes, offset);
-    offset += VALUE_SIZE;
+    offset += valueSize;
     String value = String.fromCharCodes(bytes.sublist(offset, offset + length));
     offset += length;
     dict[key] = value;

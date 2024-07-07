@@ -1,20 +1,14 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:dart_vox/dart_vox.dart';
-import 'package:dart_vox/src/constants.dart';
-import 'package:dart_vox/src/models/model.dart';
 import 'package:dart_vox/src/models/nodes.dart';
-import 'package:dart_vox/src/models/voxel.dart';
-
-import 'models/color.dart';
 
 //Create the bytes from bottom up so we know the size of the remaining ones when we need them
 Uint8List smartSerialize(Model model) {
   List<int> bytes = [];
-  // if (model.colorPalette.isNotEmpty) {
-  //   bytes.insertAll(0, createRGBAChunk(model.colorPalette));
-  // }
+  if (model.colorPalette.isNotEmpty) {
+    bytes.insertAll(0, createRGBAChunk(model.colorPalette));
+  }
   List<Uint8List> sceneGraphChunks = [];
   List<TransformNode> transformNodes = [];
   List<ShapeNode> shapeNodes = [];
@@ -24,39 +18,41 @@ Uint8List smartSerialize(Model model) {
     if (shape.voxels.isEmpty) {
       throw 'voxels can not be empty';
     }
-      bytes.insertAll(0, createXYZIChunk(shape.voxels));
-      bytes.insertAll(0, createSizeChunk(shape.size));
-      // Create a TransformNode for each model with an example translation
-      TransformNode transformNode = TransformNode(
-        id: nextNodeId++,
-        childId: nextNodeId,
-        translation: shape.translation,
-      );
-      transformNodes.add(transformNode);
+    bytes.addAll(createSizeChunk(shape.size));
+    bytes.addAll(createXYZIChunk(shape.voxels));
 
-      // Create a ShapeNode for each model
-      //FIXME: What is the modelId?
-      ShapeNode shapeNode = ShapeNode(id: nextNodeId++, modelId: nextModelId++);
-      shapeNodes.add(shapeNode);
+    int transformNodeId = nextNodeId;
+    nextNodeId++;
+    int shapeNodeId = nextNodeId;
+    nextNodeId++;
+    TransformNode transformNode = TransformNode(
+      id: transformNodeId,
+      childId: shapeNodeId,
+      translation: shape.translation,
+    );
+    transformNodes.add(transformNode);
 
-      sceneGraphChunks.add(serializeTransformNode(transformNode));
-    // transformNodes.forEach((node) {
-    // });
-      sceneGraphChunks.add(serializeShapeNode(shapeNode));
-    // shapeNodes.forEach((node) {
-    // });
+    // Create a ShapeNode for each model
+    ShapeNode shapeNode = ShapeNode(
+      id: shapeNodeId,
+      modelId: nextModelId++,
+    );
+    shapeNodes.add(shapeNode);
+
+    sceneGraphChunks.add(serializeTransformNode(transformNode));
+    sceneGraphChunks.add(serializeShapeNode(shapeNode));
   }
-  // Create a single GroupNode that groups all shapes
+  // Create a single GroupNode that groups all shapes by their transform
   GroupNode groupNode = GroupNode(
-      id: 1, childrenIds: transformNodes.map((node) => node.id).toList());
+    id: 1,
+    childrenIds: transformNodes.map((node) => node.id).toList(),
+  );
   sceneGraphChunks.insert(0, serializeGroupNode(groupNode));
   bytes.addAll(baseTransformNode());
-  sceneGraphChunks.forEach((element) {
-    bytes.addAll(element.toList());
-  });
+  for (Uint8List chunk in sceneGraphChunks) {
+    bytes.addAll(chunk.toList());
+  }
 
-  // bytes.insertAll(0, createPackChunk(1));
-  print(bytes.length);
   bytes.insertAll(0, createMainChunk(bytes.length));
   bytes.insertAll(0, createVoxChunk());
   return Uint8List.fromList(bytes);
@@ -64,14 +60,14 @@ Uint8List smartSerialize(Model model) {
 
 Uint8List createMainChunk(int size) {
   BytesBuilder builder = BytesBuilder();
-  builder.add(createChunkId('MAIN'));
+  builder.add(encodeString('MAIN'));
   builder.add(createChunkMetadata(0, size));
   return builder.toBytes();
 }
 
 Uint8List createPackChunk(int numModels) {
   BytesBuilder builder = BytesBuilder();
-  builder.add(createChunkId('PACK'));
+  builder.add(encodeString('PACK'));
   builder.add(createChunkMetadata(4, 0));
   builder.add(serializeValue(numModels));
   return builder.toBytes();
@@ -79,7 +75,7 @@ Uint8List createPackChunk(int numModels) {
 
 Uint8List createSizeChunk(Size size) {
   BytesBuilder builder = BytesBuilder();
-  builder.add(createChunkId('SIZE'));
+  builder.add(encodeString('SIZE'));
   builder.add(createChunkMetadata(3 * 4, 0));
   builder.add(serializeValue(size.x));
   builder.add(serializeValue(size.y));
@@ -89,15 +85,14 @@ Uint8List createSizeChunk(Size size) {
 
 Uint8List createVoxChunk() {
   BytesBuilder builder = BytesBuilder();
-  builder.add(createChunkId('VOX '));
-  // builder.add(serializeValue(200));
+  builder.add(encodeString('VOX '));
   builder.add(serializeValue(150));
   return builder.toBytes();
 }
 
 Uint8List createXYZIChunk(List<Voxel> voxels) {
   BytesBuilder chunkBuilder = BytesBuilder();
-  chunkBuilder.add(createChunkId('XYZI'));
+  chunkBuilder.add(encodeString('XYZI'));
   chunkBuilder.add(createChunkMetadata(voxels.length * 4 + 4, 0));
   chunkBuilder.add(serializeValue(voxels.length));
   BytesBuilder voxelBuilder = BytesBuilder();
@@ -110,8 +105,6 @@ Uint8List createXYZIChunk(List<Voxel> voxels) {
     ]);
   }
   chunkBuilder.add(voxelBuilder.toBytes());
-  print('voxels length: ${voxels.length}');
-  print('bytes length: ${chunkBuilder.toBytes().length}');
   return chunkBuilder.toBytes();
 }
 
@@ -124,7 +117,7 @@ Uint8List createChunkMetadata(int chunk, int children) {
 
 Uint8List createRGBAChunk(List<VoxColor> colors) {
   BytesBuilder chunkBuilder = BytesBuilder();
-  chunkBuilder.add(createChunkId('RGBA'));
+  chunkBuilder.add(encodeString('RGBA'));
   chunkBuilder.add(createChunkMetadata(colors.length * 4, 0));
   BytesBuilder colorBuilder = BytesBuilder();
   for (VoxColor color in colors) {
@@ -141,14 +134,14 @@ Uint8List createRGBAChunk(List<VoxColor> colors) {
 
 Uint8List baseTransformNode() {
   BytesBuilder builder = BytesBuilder();
-  builder.add(createChunkId('nTRN'));
+  builder.add(encodeString('nTRN'));
   builder.add(serializeValue(28));
   builder.add(serializeValue(0));
   builder.add(serializeValue(0));
   builder.add(serializeValue(0));
   builder.add(serializeValue(1));
   builder.add(serializeValue(-1));
-  builder.add(serializeValue(-1)); // whatever -1 was 0
+  builder.add(serializeValue(0));
   builder.add(serializeValue(1));
   builder.add(serializeValue(0));
   return builder.toBytes();
@@ -167,13 +160,13 @@ Uint8List serializeTransformNode(TransformNode node) {
   // Frame
   content.add(serializeValue(1)); // Num Keys
   content.add(serializeValue(2)); // length of key
-  content.add(createChunkId('_t')); // key
+  content.add(encodeString('_t')); // key
   final Uint8List transform = createTransform(node.translation);
   content.add(serializeValue(transform.length));
   content.add(transform);
 
   BytesBuilder chunk = BytesBuilder();
-  chunk.add(createChunkId('nTRN'));
+  chunk.add(encodeString('nTRN'));
   chunk.add(serializeValue(content.length));
   chunk.add(serializeValue(0)); // Chunk Id
   chunk.add(content.takeBytes());
@@ -189,13 +182,11 @@ Uint8List serializeGroupNode(GroupNode node) {
   content.add(serializeValue(node.childrenIds.length));
   for (int childId in node.childrenIds) {
     content.add(serializeValue(childId));
-    print('childID -> $childId');
   }
 
   BytesBuilder chunk = BytesBuilder();
-  chunk.add(createChunkId('nGRP'));
+  chunk.add(encodeString('nGRP'));
   chunk.add(serializeValue(content.length)); // Placeholder for chunk size
-  // FIXME: Was node id -> 1
   chunk.add(serializeValue(0));
   chunk.add(content.takeBytes());
   return chunk.takeBytes();
@@ -211,25 +202,21 @@ Uint8List serializeShapeNode(ShapeNode node) {
   content.add(serializeValue(0)); // dict model attributes
 
   BytesBuilder chunk = BytesBuilder();
-  chunk.add(createChunkId('nSHP'));
+  chunk.add(encodeString('nSHP'));
   chunk.add(serializeValue(content.length));
   chunk.add(serializeValue(0)); // chunk id
   chunk.add(content.takeBytes());
   return chunk.takeBytes();
 }
 
-Uint8List createChunkId(String string) {
+Uint8List encodeString(String string) {
   return Uint8List.fromList(string.codeUnits);
 }
 
 Uint8List createTransform(Translation translation) {
-  return Uint8List.fromList([
-    ...translation.x.toString().codeUnits,
-    0x20,
-    ...translation.y.toString().codeUnits,
-    0x20,
-    ...translation.z.toString().codeUnits
-  ]);
+  return Uint8List.fromList(
+    '${translation.x} ${translation.y} ${translation.z}'.codeUnits,
+  );
 }
 
 Uint8List serializeValue(int value) {
@@ -261,4 +248,91 @@ Size getShapeSize(List<Voxel> voxels) {
     maxY,
     maxZ,
   );
+}
+
+class ShapeKey {
+  final int x, y, z;
+
+  ShapeKey(this.x, this.y, this.z);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ShapeKey &&
+          runtimeType == other.runtimeType &&
+          x == other.x &&
+          y == other.y &&
+          z == other.z;
+
+  @override
+  String toString() {
+    return '$x-$y-$z';
+  }
+
+  @override
+  int get hashCode => x.hashCode ^ y.hashCode ^ z.hashCode;
+}
+
+const int maxSize = 256;
+Model modelFromVoxels(List<Voxel> voxels) {
+  // Use a Map to group voxels by their shape keys
+  Map<ShapeKey, List<Voxel>> shapes = {};
+
+  for (Voxel voxel in voxels) {
+    final int shapeX = voxel.x ~/ maxSize;
+    final int shapeY = voxel.y ~/ maxSize;
+    final int shapeZ = voxel.z ~/ maxSize;
+    ShapeKey key = ShapeKey(shapeX, shapeY, shapeZ);
+
+    // Calculate offset for the voxel within its shape
+    final Voxel offsetVoxel = Voxel(
+      voxel.x % maxSize,
+      voxel.y % maxSize,
+      voxel.z % maxSize,
+      voxel.color,
+    );
+
+    if (!shapes.containsKey(key)) {
+      shapes[key] = [];
+    }
+    shapes[key]!.add(offsetVoxel);
+  }
+
+  // Initialize the model with the correct color palette
+  final Model model = Model(
+    shapes: [],
+    colorPalette: [
+      VoxColor(255, 0, 0, 255),
+      VoxColor(0, 255, 0, 255),
+      VoxColor(0, 0, 255, 255),
+    ],
+  );
+
+  shapes.forEach(
+    (key, value) {
+      // ShapeKey already contains x, y, z
+      final int x = key.x;
+      final int y = key.y;
+      final int z = key.z;
+      // TODO: reduce shape to required size
+      // We use a fixed offset to make better use of the .vox general size limitations
+      // TODO: make dynamic
+      final Translation translation = Translation(
+        -872 + x * maxSize,
+        -872 + y * maxSize,
+        128 + z * maxSize,
+      );
+      // Add shapes to the model
+      model.shapes.add(
+        Shape(
+          size: Size(maxSize, maxSize,
+              maxSize), // Size(shapeSize, shapeSize, shapeSize),
+          voxels: value,
+          translation: translation,
+        ),
+      );
+    },
+  );
+
+  return model;
 }

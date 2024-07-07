@@ -1,13 +1,10 @@
 import 'dart:io';
 
-import 'package:dart_vox/src/models/color.dart';
-import 'package:dart_vox/src/models/color_palette.dart';
-import 'package:dart_vox/src/models/model.dart';
+import 'package:dart_vox/dart_vox.dart';
 import 'package:dart_vox/src/models/nodes.dart';
-import 'package:dart_vox/src/models/voxel.dart';
 
 void main(List<String> args) {
-  serialize();
+  fromVoxelList();
   // parse('multi.vox');
 }
 
@@ -16,42 +13,23 @@ void parse(String name) {
   Model.fromBytes(file.readAsBytesSync());
 }
 
-void serialize() {
+void fromShapes() {
   Model model = Model(
     shapes: [
       Shape(
-        size: Size(5, 5, 5),
-        voxels: [
-          Voxel(0, 0, 0, 79),
-          Voxel(0, 0, 1, 78),
-          Voxel(0, 0, 2, 79),
-          Voxel(0, 0, 3, 79),
-          Voxel(0, 0, 4, 79),
-        ],
-        translation: Translation(-3, 0, 2),
-      ),
-      Shape(
-        size: Size(5, 5, 5),
-        translation: Translation(2, 0, 2),
+        size: Size(256, 256, 256),
         voxels: [
           Voxel(0, 0, 0, 1),
-          Voxel(0, 0, 1, 2),
-          Voxel(0, 0, 2, 3),
-          Voxel(0, 0, 3, 4),
-          Voxel(0, 0, 4, 5),
         ],
+        translation: Translation(0, 0, 0),
       ),
       Shape(
-        size: Size(5, 5, 5),
-        translation: Translation(2, 10, 2),
+        size: Size(256, 256, 256),
         voxels: [
-          Voxel(0, 0, 0, 1),
-          Voxel(0, 0, 1, 2),
-          Voxel(2, 0, 2, 3),
-          Voxel(3, 0, 3, 4),
-          Voxel(1, 0, 4, 5),
+          Voxel(0, 0, 0, 2),
         ],
-      )
+        translation: Translation(256, 0, 0),
+      ),
     ],
     colorPalette: ColorPalette.fromColors(
       [
@@ -63,7 +41,31 @@ void serialize() {
       ],
     ).colors,
   );
-  serializeModel('example_multi', model);
+
+  serializeModel('shapes', model);
+}
+
+void fromVoxelList() {
+  Model model = modelFromVoxels(
+    [
+      ...createWall(
+        start: Voxel(50, 50, 0, 0),
+        end: Voxel(400, 50, 0, 0),
+        height: 5,
+        thickness: 1,
+        color: 1,
+      ),
+      ...createWall(
+        start: Voxel(400, 50, 0, 0),
+        end: Voxel(200, 400, 0, 0),
+        height: 5,
+        thickness: 1,
+        color: 1,
+      ),
+    ],
+  );
+
+  serializeModel('voxelList', model);
 }
 
 void serializeModel(String fileName, Model model) {

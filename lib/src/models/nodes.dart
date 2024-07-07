@@ -27,4 +27,9 @@ class Translation {
   final int z;
 
   const Translation(this.x, this.y, this.z);
+
+  @override
+  String toString() {
+    return 'Translation($x, $y, $z)';
+  }
 }

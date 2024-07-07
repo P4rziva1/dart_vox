@@ -6,7 +6,7 @@ import 'package:dart_vox/src/models/voxel.dart';
 import 'package:dart_vox/src/parser.dart';
 import 'package:dart_vox/src/serializer.dart';
 
-enum UpAxis { Y_UP, Z_UP }
+enum UpAxis { yUp, zUp }
 
 class Size {
   int x;
@@ -51,7 +51,7 @@ class Model {
     if (shapes.isEmpty) {
       throw 'shapes must not be empty';
     }
-    final Shape shape = this.shapes.first;
+    final Shape shape = shapes.first;
 
     final List<List<List<bool>>> voxels3D = List.generate(
       shape.size.x,
@@ -116,57 +116,57 @@ class Model {
   }
 
   String createFace(int x, int y, int z, String face,
-      [UpAxis upAxis = UpAxis.Y_UP]) {
+      [UpAxis upAxis = UpAxis.yUp]) {
     var vertices = <String>[];
     var faceIndices = <int>[];
 
     switch (face) {
       case 'left':
         vertices.addAll([
-          '${x} ${y} ${z}',
-          '${x} ${y + 1} ${z}',
-          '${x} ${y + 1} ${z + 1}',
-          '${x} ${y} ${z + 1}',
+          '$x $y $z',
+          '$x ${y + 1} $z',
+          '$x ${y + 1} ${z + 1}',
+          '$x $y ${z + 1}',
         ]);
         break;
       case 'right':
         vertices.addAll([
-          '${x + 1} ${y} ${z}',
-          '${x + 1} ${y + 1} ${z}',
+          '${x + 1} $y $z',
+          '${x + 1} ${y + 1} $z',
           '${x + 1} ${y + 1} ${z + 1}',
-          '${x + 1} ${y} ${z + 1}',
+          '${x + 1} $y ${z + 1}',
         ]);
         break;
       case 'bottom':
         vertices.addAll([
-          '${x} ${y} ${z}',
-          '${x + 1} ${y} ${z}',
-          '${x + 1} ${y} ${z + 1}',
-          '${x} ${y} ${z + 1}',
+          '$x $y $z',
+          '${x + 1} $y $z',
+          '${x + 1} $y ${z + 1}',
+          '$x $y ${z + 1}',
         ]);
         break;
       case 'top':
         vertices.addAll([
-          '${x} ${y + 1} ${z}',
-          '${x + 1} ${y + 1} ${z}',
+          '$x ${y + 1} $z',
+          '${x + 1} ${y + 1} $z',
           '${x + 1} ${y + 1} ${z + 1}',
-          '${x} ${y + 1} ${z + 1}',
+          '$x ${y + 1} ${z + 1}',
         ]);
         break;
       case 'front':
         vertices.addAll([
-          '${x} ${y} ${z}',
-          '${x + 1} ${y} ${z}',
-          '${x + 1} ${y + 1} ${z}',
-          '${x} ${y + 1} ${z}',
+          '$x $y $z',
+          '${x + 1} $y $z',
+          '${x + 1} ${y + 1} $z',
+          '$x ${y + 1} $z',
         ]);
         break;
       case 'back':
         vertices.addAll([
-          '${x} ${y} ${z + 1}',
-          '${x + 1} ${y} ${z + 1}',
+          '$x $y ${z + 1}',
+          '${x + 1} $y ${z + 1}',
           '${x + 1} ${y + 1} ${z + 1}',
-          '${x} ${y + 1} ${z + 1}',
+          '$x ${y + 1} ${z + 1}',
         ]);
         break;
     }
