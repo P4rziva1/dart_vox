@@ -309,25 +309,25 @@ Model modelFromVoxels(List<Voxel> voxels) {
   );
 
   shapes.forEach(
-    (key, value) {
+    (key, shapeVoxels) {
       // ShapeKey already contains x, y, z
       final int x = key.x;
       final int y = key.y;
       final int z = key.z;
-      // TODO: reduce shape to required size
+      // TODO: The shape size could be reduced even moore
       // We use a fixed offset to make better use of the .vox general size limitations
       // TODO: make dynamic
+      final Size shapeSize = getShapeSize(shapeVoxels);
       final Translation translation = Translation(
-        -872 + x * maxSize,
-        -872 + y * maxSize,
-        128 + z * maxSize,
+        -872 +x * maxSize + shapeSize.x ~/ 2,
+        -872 +y * maxSize + shapeSize.y ~/ 2,
+        z * maxSize + shapeSize.z ~/ 2,
       );
       // Add shapes to the model
       model.shapes.add(
         Shape(
-          size: Size(maxSize, maxSize,
-              maxSize), // Size(shapeSize, shapeSize, shapeSize),
-          voxels: value,
+          size: shapeSize,
+          voxels: shapeVoxels,
           translation: translation,
         ),
       );
